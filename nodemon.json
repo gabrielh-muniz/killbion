@@ -1,0 +1,6 @@
+{
+  "watch": ["src"],
+  "ext": "js,json",
+  "exec": "node --env-file=.env src/index.js",
+  "ignore": ["node_modules", ".git", "dist", ".vscode"]
+}
