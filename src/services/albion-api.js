@@ -223,19 +223,19 @@ export class AlbionAPI {
 //   console.log("Sync complete");
 // });
 
-(async () => {
-  const [dbEventsError, dbEvents] = await to(
-    query(
-      "SELECT * FROM events WHERE killer_guild_id = $1 ORDER BY timestamp DESC LIMIT 10",
-      ["1vn_N9OuSwuJDB_mcOrPag"]
-    )
-  );
-  if (dbEventsError) {
-    logger.error(`Database error: ${dbEventsError.message}`);
-    throw new Error("Failed to fetch events from database");
-  }
-  console.log(dbEvents.rows);
-})();
+// (async () => {
+//   const [dbEventsError, dbEvents] = await to(
+//     query(
+//       "SELECT * FROM events WHERE killer_guild_id = $1 ORDER BY timestamp DESC LIMIT 10",
+//       ["1vn_N9OuSwuJDB_mcOrPag"]
+//     )
+//   );
+//   if (dbEventsError) {
+//     logger.error(`Database error: ${dbEventsError.message}`);
+//     throw new Error("Failed to fetch events from database");
+//   }
+//   console.log(dbEvents.rows);
+// })();
 
 // kill counter
 // (async () => {

@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "dev": "nodemon",
-    "dev:api": "node --env-file=.env src/services/albion-api.js"
+    "dev:api": "node --env-file=.env src/services/albion-api.js",
+    "dev:gemini": "node --env-file=.env src/services/gemini.js"
   },
   "keywords": [
     "discord",
@@ -22,6 +23,7 @@
     "nodemon": "^3.1.11"
   },
   "dependencies": {
+    "@google/genai": "^1.30.0",
     "discord.js": "^14.25.1",
     "pg": "^8.16.3",
     "winston": "^3.18.3"
