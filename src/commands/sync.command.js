@@ -9,6 +9,9 @@ export const data = new SlashCommandBuilder();
 data.setName("sync").setDescription("Syncs commands with Discord API");
 
 export async function execute(interaction) {
+  // CRITICAL: Defer reply immediately to avoid timeout
+  await interaction.deferReply();
+
   const [error, result] = await to(
     AlbionAPI.syncEventsWithDatabase(interaction.guild.id)
   );
