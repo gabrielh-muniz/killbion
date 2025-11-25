@@ -133,10 +133,13 @@ export class AlbionAPI {
       throw new Error("Failed to fetch latest guild data");
     }
 
-    // Fetch all events from the database for this guild
+    // Fetch all events from the database for this guild based on the guild id for this server
     logger.info(`Fetching all events from the database for sync...`);
     const [dbEventsError, dbEvents] = await to(
-      query("SELECT * FROM events ORDER BY timestamp DESC LIMIT 100", [])
+      query(
+        "SELECT * FROM events WHERE killer_guild_id = $1 ORDER BY timestamp DESC LIMIT 100",
+        [guildData.rows[0].external_id]
+      )
     );
     if (dbEventsError) {
       logger.error(`Database error: ${dbEventsError.message}`);
@@ -216,20 +219,23 @@ export class AlbionAPI {
 //     console.error(err);
 //   });
 
-// AlbionAPI.syncEventsWithDatabase("1331218317905760326").then(() => {
+// AlbionAPI.syncEventsWithDatabase("1441432910589853750").then(() => {
 //   console.log("Sync complete");
 // });
 
-// (async () => {
-//   const [dbEventsError, dbEvents] = await to(
-//     query("SELECT * FROM events ORDER BY timestamp DESC LIMIT 100", [])
-//   );
-//   if (dbEventsError) {
-//     logger.error(`Database error: ${dbEventsError.message}`);
-//     throw new Error("Failed to fetch events from database");
-//   }
-//   console.log(dbEvents.rows);
-// })();
+(async () => {
+  const [dbEventsError, dbEvents] = await to(
+    query(
+      "SELECT * FROM events WHERE killer_guild_id = $1 ORDER BY timestamp DESC LIMIT 10",
+      ["1vn_N9OuSwuJDB_mcOrPag"]
+    )
+  );
+  if (dbEventsError) {
+    logger.error(`Database error: ${dbEventsError.message}`);
+    throw new Error("Failed to fetch events from database");
+  }
+  console.log(dbEvents.rows);
+})();
 
 // kill counter
 // (async () => {
