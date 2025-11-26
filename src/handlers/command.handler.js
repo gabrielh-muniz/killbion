@@ -7,8 +7,15 @@ import { registerAppCommands } from "../utils/rest-client.utils.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export const commands = [];
+/**
+ * @typedef {import("discord.js").Client & {commands: Collection<string, any>}} ExtendedClient
+ */
 
+/**
+ * Loads commands from the commands directory and registers them with the Discord client
+ * @param {ExtendedClient} client - The Discord client instance
+ * @returns {Promise<void>} - A promise that resolves when all commands are loaded
+ */
 export async function loadCommands(client) {
   // Initialize the commands collection
   client.commands = new Collection();

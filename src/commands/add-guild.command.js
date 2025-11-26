@@ -17,6 +17,11 @@ data
       .setRequired(true)
   );
 
+/**
+ * Command function that binds a guild to this server
+ * @param {import("discord.js").CommandInteraction & {options: import("discord.js").CommandInteractionOptionResolver}} interaction - The command interaction object
+ * @returns {Promise<void>} - A promise that resolves when the command execution is complete
+ */
 export async function execute(interaction) {
   // Get guild name from interaction options
   const guildName = interaction.options.getString("name");

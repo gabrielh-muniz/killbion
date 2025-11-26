@@ -6,6 +6,12 @@ const geminiClient = new GoogleGenAI({
   apiKey: process.env.GEMINI_KEY_API,
 });
 
+/**
+ * Generate a response using Gemini API
+ * @param {string} model - Gemini model name
+ * @param {string} prompt - The prompt to generate a response for
+ * @returns {Promise<string>} - The generated response text
+ */
 export async function generateGeminiResponse(model, prompt) {
   const [error, response] = await to(
     geminiClient.models.generateContent({
@@ -17,21 +23,6 @@ export async function generateGeminiResponse(model, prompt) {
     logger.error(`Gemini API error: ${error.message}`);
     throw new Error("Failed to generate response from Gemini API");
   }
-  // console.log(
-  //   "Gemini API response:",
-  //   response.candidates[0].content.parts[0].text
-  // );
+
   return response.candidates[0].content.parts[0].text;
 }
-
-// test
-// generateGeminiResponse(
-//   process.env.GEMINI_MODEL,
-//   "Explain the E=mc^2 equation in simple terms for a 5-year-old."
-// )
-//   .then((response) => {
-//     logger.info("Gemini Response:", response);
-//   })
-//   .catch((error) => {
-//     logger.error("Error generating Gemini response:", error);
-//   });

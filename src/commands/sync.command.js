@@ -8,6 +8,11 @@ export const data = new SlashCommandBuilder();
 
 data.setName("sync").setDescription("Syncs commands with Discord API");
 
+/**
+ * Command function that syncs events from Albion Online API with the database
+ * @param {import("discord.js").CommandInteraction} interaction - The command interaction object
+ * @returns {Promise<void>} - A promise that resolves when the command execution is complete
+ */
 export async function execute(interaction) {
   // CRITICAL: Defer reply immediately to avoid timeout
   await interaction.deferReply();

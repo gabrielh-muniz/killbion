@@ -50,6 +50,13 @@ export class AlbionAPI {
     return data.guilds[0];
   }
 
+  /**
+   * Fetches recent kills for a guild associated with a server
+   * @param {string} serverId - The server ID to fetch recent kills for
+   * @param {number} limit - The number of recent kills to fetch
+   * @param {number} offset - The offset for pagination
+   * @returns {Promise<Object>} - The recent kills data
+   */
   static async fetchGuildRecentKills(serverId, limit = 51, offset = 0) {
     if (!serverId || typeof serverId !== "string")
       throw new Error("Server ID must be a non-empty string");
@@ -101,6 +108,11 @@ export class AlbionAPI {
     return data;
   }
 
+  /**
+   * Syncs events from Albion API with the database for a given server
+   * @param {string} serverId - The server ID to sync events for
+   * @returns {Promise<Object>} - The result of the sync operation
+   */
   static async syncEventsWithDatabase(serverId) {
     if (!serverId || typeof serverId !== "string")
       throw new Error("Server ID must be a non-empty string");
@@ -210,44 +222,3 @@ export class AlbionAPI {
     };
   }
 }
-
-// AlbionAPI.fetchGuildRecentKills("1331218317905760326")
-//   .then((data) => {
-//     console.log(data);
-//   })
-//   .catch((err) => {
-//     console.error(err);
-//   });
-
-// AlbionAPI.syncEventsWithDatabase("1441432910589853750").then(() => {
-//   console.log("Sync complete");
-// });
-
-// (async () => {
-//   const [dbEventsError, dbEvents] = await to(
-//     query(
-//       "SELECT * FROM events WHERE killer_guild_id = $1 ORDER BY timestamp DESC LIMIT 10",
-//       ["1vn_N9OuSwuJDB_mcOrPag"]
-//     )
-//   );
-//   if (dbEventsError) {
-//     logger.error(`Database error: ${dbEventsError.message}`);
-//     throw new Error("Failed to fetch events from database");
-//   }
-//   console.log(dbEvents.rows);
-// })();
-
-// kill counter
-// (async () => {
-//   const [dbEventsError, dbEvents] = await to(
-//     query(
-//       "SELECT killer_name, COUNT(*) as total_kills FROM events GROUP BY killer_name ORDER BY total_kills DESC LIMIT 10",
-//       []
-//     )
-//   );
-//   if (dbEventsError) {
-//     logger.error(`Database error: ${dbEventsError.message}`);
-//     throw new Error("Failed to fetch events from database");
-//   }
-//   console.log(dbEvents.rows);
-// })();

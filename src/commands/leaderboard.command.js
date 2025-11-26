@@ -8,6 +8,11 @@ export const data = new SlashCommandBuilder();
 
 data.setName("leaderboard").setDescription("Shows the guild leaderboard");
 
+/**
+ * Command function that shows the guild leaderboard binded to the server
+ * @param {import("discord.js").CommandInteraction} interaction - The command interaction object
+ * @returns {Promise<void>} - A promise that resolves when the command execution is complete
+ */
 export async function execute(interaction) {
   // Fetch guild info based on server Id
   const [guildError, guildData] = await to(
@@ -53,16 +58,7 @@ export async function execute(interaction) {
     return;
   }
 
-  const leaderboardList = results.rows;
-
-  // const leaderboardLines = results.rows
-  //   .map(
-  //     (row, index) =>
-  //       `**${index + 1}. ${row.killer_name}** - ${row.total_kills} kills`
-  //   )
-  //   .join("\n");
-
-  const description = leaderboardList
+  const description = results.rows
     .map((player, idx) => {
       const medal =
         idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}.`;
@@ -101,10 +97,6 @@ export async function execute(interaction) {
   const createdAt = new Date(guildData.rows[0].created_at).toLocaleDateString(
     "pt-BR"
   );
-
-  // const timestamp = Math.floor(
-  //   new Date(guildData.rows[0].created_at).getTime() / 1000
-  // );
 
   embed.setFooter({
     text: `Total Guild Fame: ${

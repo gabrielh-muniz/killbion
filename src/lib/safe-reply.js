@@ -1,19 +1,12 @@
-// import { logger } from "./logger.lib.js";
-
-// export async function safeReply(interaction, message) {
-//   try {
-//     if (interaction.replied || interaction.deferred) {
-//       return await interaction.followUp(message);
-//     }
-//     return await interaction.reply(message);
-//   } catch (error) {
-//     logger.error("Error sending reply:", error);
-//   }
-// }
-
 import { MessageFlags } from "discord.js";
 import { logger } from "./logger.lib.js";
 
+/**
+ *
+ * @param {import("discord.js").CommandInteraction} interaction - The interaction type to reply to
+ * @param {Object<string, any>} message - The message to send as a reply
+ * @returns {Promise<any>} - A promise that resolves when the reply is sent
+ */
 export async function safeReply(interaction, message) {
   try {
     // If already replied or deferred, use edit or followUp

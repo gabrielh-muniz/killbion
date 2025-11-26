@@ -14,6 +14,11 @@ data
       .setRequired(true)
   );
 
+/**
+ * Command function that generates a response using Gemini AI model
+ * @param {import("discord.js").CommandInteraction & {options: import("discord.js").CommandInteractionOptionResolver}} interaction - The command interaction object
+ * @returns {Promise<void>} - A promise that resolves when the command execution is complete
+ */
 export async function execute(interaction) {
   // CRITICAL: Defer reply immediately to avoid timeout
   await interaction.deferReply();
@@ -34,5 +39,5 @@ export async function execute(interaction) {
     });
     return;
   }
-  await safeReply(interaction, geminiResponse);
+  await safeReply(interaction, { content: geminiResponse });
 }

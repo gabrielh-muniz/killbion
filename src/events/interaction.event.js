@@ -5,6 +5,15 @@ import { safeReply } from "../lib/safe-reply.js";
 export const name = Events.InteractionCreate;
 export const once = false;
 
+/**
+ * @typedef {import("discord.js").Client & {commands: import("discord.js").Collection<string, any>}} ExtendedClient
+ */
+
+/**
+ * Handles the InteractionCreate event
+ * @param {import("discord.js").Interaction & {client: ExtendedClient}} interaction - The interaction object with extended client
+ * @returns {Promise<void>} - A promise that resolves when the interaction is handled
+ */
 export async function execute(interaction) {
   // Only handle chat input commands
   if (!interaction.isChatInputCommand()) return;

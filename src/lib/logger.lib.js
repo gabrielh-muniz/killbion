@@ -6,6 +6,10 @@ const logFormat = printf(({ level, message, timestamp }) => {
   return `${timestamp} [${level}]: ${message}`;
 });
 
+/**
+ * Creates and configures a Winston logger instance
+ * @returns {import("winston").Logger} - A configured Winston logger instance
+ */
 function winstonLogger() {
   return winston.createLogger({
     level: "info",
