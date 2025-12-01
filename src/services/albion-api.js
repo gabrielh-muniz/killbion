@@ -221,4 +221,106 @@ export class AlbionAPI {
       inserted: updatedCount,
     };
   }
+
+  /**
+   * Fetches guild members binded to a server
+   * @param {string} serverId - The server ID to fetch guild members for
+   * @returns {Promise<Array>} - The list of guild members
+   */
+  static async fetchGuildMembers(serverId) {
+    if (!serverId || typeof serverId !== "string")
+      throw new Error("Server ID must be a non-empty string");
+
+    // Fetch the registered guild for the server
+    const [fetchGuildError, guildData] = await to(
+      query("SELECT * FROM guilds WHERE server_id = $1", [serverId])
+    );
+    if (fetchGuildError) {
+      logger.error(`Database error: ${fetchGuildError.message}`);
+      throw new Error("Failed to fetch guild from database");
+    }
+
+    if (guildData.rows.length === 0) {
+      logger.error(`No guild registered for server ID: ${serverId}`);
+      throw new Error("No guild registered for this server");
+    }
+
+    const guildId = guildData.rows[0].external_id;
+
+    // Fetch guild members from Albion API
+    const url = `${BASE_URL}/guilds/${guildId}/members`;
+
+    logger.info(`Fetching guild members from URL: ${url}`);
+    const [error, response] = await to(fetch(url));
+    if (error) {
+      logger.error(`Failed to fetch guild members: ${error.message}`);
+      throw new Error("Failed to fetch guild members");
+    }
+
+    if (!response.ok) {
+      logger.error(
+        `Failed to fetch guild members: HTTP status ${response.status}`
+      );
+      throw new Error("Failed to fetch guild members");
+    }
+
+    // Parse JSON response
+    const [parseError, data] = await to(response.json());
+    if (parseError) {
+      logger.error(`Failed to parse guild members: ${parseError.message}`);
+      throw new Error("Failed to parse guild members");
+    }
+
+    return data;
+  }
+
+  /**
+   * Deletes all a guild's events from the database as well as the guild entry itself
+   * @param {string} serverId - The server ID to delete guild data for
+   * @return {Promise<void>}
+   */
+  static async deleteGuildData(serverId) {
+    if (!serverId || typeof serverId !== "string")
+      throw new Error("Server ID must be a non-empty string");
+
+    // Fetch the registered guild for the server
+    const [fetchGuildError, guildData] = await to(
+      query("SELECT * FROM guilds WHERE server_id = $1", [serverId])
+    );
+    if (fetchGuildError) {
+      logger.error(`Database error: ${fetchGuildError.message}`);
+      throw new Error("Failed to fetch guild from database");
+    }
+
+    if (guildData.rows.length === 0) {
+      logger.error(`No guild registered for server ID: ${serverId}`);
+      throw new Error("No guild registered for this server");
+    }
+
+    const guildId = guildData.rows[0].external_id;
+
+    // Delete events associated with the guild
+    const [deleteEventsError, _] = await to(
+      query("DELETE FROM events WHERE killer_guild_id = $1", [guildId])
+    );
+    if (deleteEventsError) {
+      logger.error(`Database error: ${deleteEventsError.message}`);
+      throw new Error("Failed to delete guild events from database");
+    }
+
+    // Delete the guild entry
+    const [deleteGuildError, __] = await to(
+      query("DELETE FROM guilds WHERE server_id = $1", [serverId])
+    );
+    if (deleteGuildError) {
+      logger.error(`Database error: ${deleteGuildError.message}`);
+      throw new Error("Failed to delete guild from database");
+    }
+
+    logger.info(`Successfully deleted guild data for server ID: ${serverId}`);
+  }
 }
+
+// AlbionAPI.fetchGuildMembers("1331218317905760326").then((members) => {
+//   console.log(members);
+// });
