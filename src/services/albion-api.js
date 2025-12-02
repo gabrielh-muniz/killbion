@@ -381,4 +381,88 @@ export class AlbionAPI {
 
     return { removed: removedCount };
   }
+
+  /**
+   * Fetches guild data by server ID from API. Don't store in DB.
+   * @param {string} serverId - The server ID to fetch guild data for
+   * @returns {Promise<Object>} - The guild data
+   * @throws {Error} - If the fetch fails or guild not found
+   */
+  static async fetchGuildData(serverId) {
+    if (!serverId || typeof serverId !== "string")
+      throw new Error("Server ID must be a non-empty string");
+
+    // Fetch guild associated with the server
+    const [fetchGuildError, guildData] = await to(
+      query("SELECT * FROM guilds WHERE server_id = $1", [serverId])
+    );
+
+    if (fetchGuildError) {
+      logger.error(`Database error: ${fetchGuildError.message}`);
+      throw new Error("Failed to fetch guild from database");
+    }
+
+    if (guildData.rows.length === 0) {
+      logger.error(`No guild registered for server ID: ${serverId}`);
+      throw new Error("No guild registered for this server");
+    }
+
+    const guildId = guildData.rows[0].external_id;
+
+    // Fetch guild data from Albion API
+    const url = `${BASE_URL}/guilds/${guildId}/data`;
+
+    logger.info(`Fetching guild data from URL: ${url}`);
+
+    const [error, response] = await to(fetch(url));
+
+    if (error) {
+      logger.error(`Failed to fetch guild data: ${error.message}`);
+      throw new Error("Failed to fetch guild data");
+    }
+
+    if (!response.ok) {
+      logger.error(
+        `Failed to fetch guild data: HTTP status ${response.status}`
+      );
+      throw new Error("Failed to fetch guild data");
+    }
+
+    // Parse JSON response
+    const [parseError, data] = await to(response.json());
+
+    if (parseError) {
+      logger.error(`Failed to parse guild data: ${parseError.message}`);
+      throw new Error("Failed to parse guild data");
+    }
+    return {
+      id: data.guild.Id,
+      name: data.guild.Name,
+      founder: data.guild.FounderName,
+      memberCount: data.basic.memberCount,
+
+      // Fame stats
+      stats: {
+        killFame: data.guild.killFame,
+        deathFame: data.guild.DeathFame,
+      },
+
+      // Kill/Death stats
+      pvp: {
+        kills: data.overall.kills,
+        deaths: data.overall.deaths,
+        fame: data.overall.fame,
+      },
+
+      // top 5 players
+      topPlayers: data.topPlayers.map((player) => ({
+        id: player.Id,
+        name: player.Name,
+        killFame: player.KillFame,
+        deathFame: player.DeathFame,
+        ratio: player.FameRatio,
+        totalKills: player.totalKills,
+      })),
+    };
+  }
 }
