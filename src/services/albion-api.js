@@ -319,8 +319,66 @@ export class AlbionAPI {
 
     logger.info(`Successfully deleted guild data for server ID: ${serverId}`);
   }
-}
 
-// AlbionAPI.fetchGuildMembers("1331218317905760326").then((members) => {
-//   console.log(members);
-// });
+  /**
+   * Sync guild members with the database for a given server
+   * @param {string} serverId - The server ID to sync guild members for
+   * @returns {Promise<{ removed: number }>} - The result of the sync operation
+   */
+  static async syncGuildMembersWithDatabase(serverId) {
+    if (!serverId || typeof serverId !== "string")
+      throw new Error("Server ID must be a non-empty string");
+
+    logger.info("Fetching guild members for sync...");
+    const [apiError, members] = await to(this.fetchGuildMembers(serverId));
+    if (apiError) {
+      logger.error(`Error fetching guild members: ${apiError.message}`);
+      throw new Error("Failed to fetch guild members");
+    }
+    logger.info(`Fetched ${members.length} guild members.`);
+
+    // Fetch unique member IDs from events table for this guild
+    const [dbError, dbEventsId] = await to(
+      query(
+        `SELECT DISTINCT killer_id AS member_id FROM events
+         WHERE killer_guild_id = (
+           SELECT external_id FROM guilds WHERE server_id = $1
+         )`,
+        [serverId]
+      )
+    );
+    if (dbError) {
+      logger.error(`Database error: ${dbError.message}`);
+      throw new Error("Failed to fetch members from database");
+    }
+
+    // Compare the fetched member with the database records
+
+    const fetchedMemberIdApi = new Set(members.map((member) => member.Id));
+    const fetchedMemberIdDb = new Set(
+      dbEventsId.rows.map((row) => row.member_id)
+    );
+
+    // Difference: member in database events but not in API
+    // Remove events for players that are no longer in the guild
+    const eventsMemberToRemove = [...fetchedMemberIdDb].filter(
+      (id) => !fetchedMemberIdApi.has(id)
+    );
+
+    let removedCount = 0;
+    for (const memberId of eventsMemberToRemove) {
+      const [deleteError, _] = await to(
+        query("DELETE FROM events WHERE killer_id = $1", [memberId])
+      );
+      if (deleteError) {
+        logger.error(`Database error: ${deleteError.message}`);
+        continue;
+      }
+      logger.info(`Removed events for member ID: ${memberId}`);
+      removedCount++;
+    }
+    logger.info(`Total events removed: ${removedCount}`);
+
+    return { removed: removedCount };
+  }
+}
