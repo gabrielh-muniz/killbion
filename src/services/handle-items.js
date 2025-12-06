@@ -37,10 +37,26 @@ export class HandleItems {
 
     logger.info("Items file downloaded successfully.");
   }
-}
 
-HandleItems.downloadItemsFile(
-  "https://raw.githubusercontent.com/ao-data/ao-bin-dumps/refs/heads/master/formatted/items.txt"
-).catch((err) => {
-  logger.error("Error downloading items file:", err);
-});
+  /**
+   * Parse the items file lines. Some lines may have blank fields -> remove it
+   * @param {string} line - A line from the items file
+   * @returns {Object | null} - Parsed item object
+   */
+  static parseLine(line) {
+    // Expected pattern: "<id>: <unique_code>: <english_name>"
+    // Be tolarant to extra spaces
+    const parts = line.split(":");
+    if (parts.length < 3) return null;
+
+    const id = parts[0].trim();
+    const code = parts[1].trim();
+    const name = parts.slice(2).join(":").trim();
+
+    // Validate fields
+    if (!id || !code || !name) return null;
+    if (!/^\d+$/.test(id)) return null;
+
+    return { id: Number(id), code, name };
+  }
+}
