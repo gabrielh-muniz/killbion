@@ -27,6 +27,9 @@ const VALID_CATEGORY = [
 // Regex pattern: T<number>_<UppercaseAlphanumeric>_<anything>
 const CODE_PATTERN = /^T(\d+)_([A-Z0-9]+)(?:_.*)?$/;
 
+// Tier constraints
+const MIN_TIER = 4;
+
 export class HandleItems {
   /**
    * Download the items file from a remote source
@@ -73,6 +76,9 @@ export class HandleItems {
 
     const codeMatch = code.match(CODE_PATTERN);
     if (!codeMatch) return null;
+
+    const tier = Number(codeMatch[1]);
+    if (tier < MIN_TIER) return null;
 
     const category = codeMatch[2];
     if (!VALID_CATEGORY.includes(category)) return null;
@@ -170,3 +176,7 @@ export class HandleItems {
     logger.error("Unhandled error in HandleItems:", err);
   });
 */
+
+// HandleItems.parseItemsFile().catch((err) => {
+//   logger.error("Unhandled error in parsing items file:", err);
+// });
