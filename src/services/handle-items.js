@@ -13,6 +13,20 @@ const streamPipeline = promisify(pipeline);
 const DATA_DIR = join(__dirname, "../../data");
 const LOCAL_PATH = join(DATA_DIR, "items.txt");
 
+const VALID_CATEGORY = [
+  "OFF",
+  "CAPEITEM",
+  "BAG",
+  "2H",
+  "HEAD",
+  "ARMOR",
+  "SHOES",
+  "MAIN",
+];
+
+// Regex pattern: T<number>_<UppercaseAlphanumeric>_<anything>
+const CODE_PATTERN = /^T(\d+)_([A-Z0-9]+)(?:_.*)?$/;
+
 export class HandleItems {
   /**
    * Download the items file from a remote source
@@ -57,6 +71,12 @@ export class HandleItems {
     if (!id || !code || !name) return null;
     if (!/^\d+$/.test(id)) return null;
 
+    const codeMatch = code.match(CODE_PATTERN);
+    if (!codeMatch) return null;
+
+    const category = codeMatch[2];
+    if (!VALID_CATEGORY.includes(category)) return null;
+
     return { id: Number(id), code, name };
   }
 
@@ -85,8 +105,68 @@ export class HandleItems {
     logger.info(`Parsed ${items.length} items from the file.`);
     return items;
   }
+
+  /**
+   * Store items into the database
+   * @param {Array} items - Array of item objects to store
+   * @returns {Promise<Object>} - A promise that resolves when items are stored
+   */
+  static async storeItemsInDB(items) {
+    if (!Array.isArray(items) || items.length === 0) {
+      logger.warn("No items to store in the database.");
+      return { inserted: 0, upserted: 0 };
+    }
+
+    logger.info(`Storing ${items.length} items into the database...`);
+
+    let inserted = 0;
+
+    try {
+      await query("BEGIN", []);
+
+      for (const item of items) {
+        const [err] = await to(
+          query(
+            `INSERT INTO items (id, code, name)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (id) DO UPDATE SET
+             code = EXCLUDED.code,
+             name = EXCLUDED.name`,
+            [item.id, item.code, item.name]
+          )
+        );
+        if (!err) inserted++;
+        else logger.error(`Failed upsert for id=${item.id}: ${err.message}`);
+        await query("COMMIT", []);
+      }
+    } catch (err) {
+      await query("ROLLBACK", []);
+      throw err;
+    }
+
+    logger.info(`Items stored successfully. Total upserted: ${inserted}`);
+    return { inserted };
+  }
+
+  /**
+   * Main handler to download, parse, and store items
+   * @param {string} url - URL to download the items file from
+   */
+  static async handleItems(url) {
+    try {
+      await this.downloadItemsFile(url);
+      const items = await this.parseItemsFile();
+      const result = await this.storeItemsInDB(items);
+      logger.info(`HandleItems completed: ${result.inserted} items upserted.`);
+    } catch (error) {
+      logger.error("Error in HandleItems:", error);
+    }
+  }
 }
 
-HandleItems.parseItemsFile().catch((error) => {
-  logger.error("Error handling items file:", error);
-});
+/*
+// Example usage:
+  HandleItems.handleItems(process.env.ITEMS_FILE_URL).catch((err) => {
+    logger.error("Unhandled error in HandleItems:", err);
+  });
+*/
