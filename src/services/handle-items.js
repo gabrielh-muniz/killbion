@@ -59,4 +59,34 @@ export class HandleItems {
 
     return { id: Number(id), code, name };
   }
+
+  /**
+   * Parse the items file
+   * @param {string} filePath - Path to the items file
+   * @returns {Promise<Array>} - Array of parsed item objects
+   */
+  static async parseItemsFile(filePath = LOCAL_PATH) {
+    logger.info(`Parsing items file at ${filePath}...`);
+    const [err, data] = await to(fs.readFile(filePath, "utf-8"));
+    if (err) {
+      logger.error("Error reading items file:", err);
+      return [];
+    }
+
+    // Normalize line endings and filter blanks
+    const lines = data.split(/\r?\n/).filter((line) => line.trim().length > 0);
+
+    const items = [];
+
+    for (const line of lines) {
+      const parsed = this.parseLine(line);
+      if (parsed) items.push(parsed);
+    }
+    logger.info(`Parsed ${items.length} items from the file.`);
+    return items;
+  }
 }
+
+HandleItems.parseItemsFile().catch((error) => {
+  logger.error("Error handling items file:", error);
+});
