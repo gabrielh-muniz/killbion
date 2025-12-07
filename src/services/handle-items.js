@@ -176,7 +176,3 @@ export class HandleItems {
     logger.error("Unhandled error in HandleItems:", err);
   });
 */
-
-// HandleItems.parseItemsFile().catch((err) => {
-//   logger.error("Unhandled error in parsing items file:", err);
-// });

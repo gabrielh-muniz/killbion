@@ -7,7 +7,8 @@
     "dev": "nodemon",
     "dev:api": "node --env-file=.env src/services/albion-api.js",
     "dev:gemini": "node --env-file=.env src/services/gemini.js",
-    "dev:items": "node --env-file=.env src/services/handle-items.js"
+    "dev:items": "node --env-file=.env src/services/handle-items.js",
+    "dev:aodp": "node --env-file=.env src/services/aodp-api.js"
   },
   "keywords": [
     "discord",
